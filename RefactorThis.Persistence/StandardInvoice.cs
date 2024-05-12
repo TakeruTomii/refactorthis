@@ -2,10 +2,10 @@ using System.Collections.Generic;
 
 namespace RefactorThis.Persistence
 {
-	public class Invoice
+	public class StandardInvoice:IInvoice
 	{
 		private readonly InvoiceRepository _repository;
-		public Invoice( InvoiceRepository repository )
+		public StandardInvoice( InvoiceRepository repository )
 		{
 			_repository = repository;
 		}
@@ -15,17 +15,14 @@ namespace RefactorThis.Persistence
 			_repository.SaveInvoice( this );
 		}
 
-		public decimal Amount { get; set; }
-		public decimal AmountPaid { get; set; }
-		public decimal TaxAmount { get; set; }
-		public List<Payment> Payments { get; set; }
-		
-		public InvoiceType Type { get; set; }
-	}
+        public void AddPayments(Payment payment)
+        {
+            AmountPaid += payment.Amount;
+            Payments.Add(payment);
+        }
 
-	public enum InvoiceType
-	{
-		Standard,
-		Commercial
+        public decimal Amount { get; set; }
+		public decimal AmountPaid { get; set; }
+		public List<Payment> Payments { get; set; }
 	}
 }

@@ -48,43 +48,13 @@ namespace RefactorThis.Domain
                     {
                         if (IsFullyPaidForRemainingInvoice(payment, invoice))
                         {
-                            switch (invoice.Type)
-                            {
-                                case InvoiceType.Standard:
-                                    invoice.AmountPaid += payment.Amount;
-                                    invoice.Payments.Add(payment);
-                                    responseMessage = ResponseMessages.RES_FINAL_INVOICE_FULLY_PAID;
-                                    break;
-                                case InvoiceType.Commercial:
-                                    invoice.AmountPaid += payment.Amount;
-                                    invoice.TaxAmount += payment.Amount * InvoiceConstants.TAX_RATE;
-                                    invoice.Payments.Add(payment);
-                                    responseMessage = ResponseMessages.RES_FINAL_INVOICE_FULLY_PAID;
-                                    break;
-                                default:
-                                    throw new ArgumentOutOfRangeException();
-                            }
-
+                            responseMessage = ResponseMessages.RES_FINAL_INVOICE_FULLY_PAID;
                         }
                         else
                         {
-                            switch (invoice.Type)
-                            {
-                                case InvoiceType.Standard:
-                                    invoice.AmountPaid += payment.Amount;
-                                    invoice.Payments.Add(payment);
-                                    responseMessage = ResponseMessages.RES_ANOTHER_PARTIAL_NOT_FULLY_PAID;
-                                    break;
-                                case InvoiceType.Commercial:
-                                    invoice.AmountPaid += payment.Amount;
-                                    invoice.TaxAmount += payment.Amount * InvoiceConstants.TAX_RATE;
-                                    invoice.Payments.Add(payment);
-                                    responseMessage = ResponseMessages.RES_ANOTHER_PARTIAL_NOT_FULLY_PAID;
-                                    break;
-                                default:
-                                    throw new ArgumentOutOfRangeException();
-                            }
+                            responseMessage = ResponseMessages.RES_ANOTHER_PARTIAL_NOT_FULLY_PAID;
                         }
+                        invoice.AddPayments(payment);
                     }
                 }
                 else
@@ -93,45 +63,18 @@ namespace RefactorThis.Domain
                     {
                         responseMessage = ResponseMessages.RES_PAYMENT_GREATER_THAN_INVOICE_AMOUNT;
                     }
-                    else if (IsFullyPaid(payment, invoice))
-                    {
-                        switch (invoice.Type)
-                        {
-                            case InvoiceType.Standard:
-                                invoice.AmountPaid = payment.Amount;
-                                invoice.TaxAmount = payment.Amount * InvoiceConstants.TAX_RATE;
-                                invoice.Payments.Add(payment);
-                                responseMessage = ResponseMessages.RES_INVOICE_NOW_FULLY_PAID;
-                                break;
-                            case InvoiceType.Commercial:
-                                invoice.AmountPaid = payment.Amount;
-                                invoice.TaxAmount = payment.Amount * InvoiceConstants.TAX_RATE;
-                                invoice.Payments.Add(payment);
-                                responseMessage = ResponseMessages.RES_INVOICE_NOW_FULLY_PAID;
-                                break;
-                            default:
-                                throw new ArgumentOutOfRangeException();
-                        }
-                    }
                     else
                     {
-                        switch (invoice.Type)
+                        if(IsFullyPaid(payment, invoice))
                         {
-                            case InvoiceType.Standard:
-                                invoice.AmountPaid = payment.Amount;
-                                invoice.TaxAmount = payment.Amount * InvoiceConstants.TAX_RATE;
-                                invoice.Payments.Add(payment);
-                                responseMessage = ResponseMessages.RES_INVOICE_NOW_PARTIALLY_PAID;
-                                break;
-                            case InvoiceType.Commercial:
-                                invoice.AmountPaid = payment.Amount;
-                                invoice.TaxAmount = payment.Amount * InvoiceConstants.TAX_RATE;
-                                invoice.Payments.Add(payment);
-                                responseMessage = ResponseMessages.RES_INVOICE_NOW_PARTIALLY_PAID;
-                                break;
-                            default:
-                                throw new ArgumentOutOfRangeException();
+                            responseMessage = ResponseMessages.RES_INVOICE_NOW_FULLY_PAID;
                         }
+                        else
+                        {
+                            responseMessage = ResponseMessages.RES_INVOICE_NOW_PARTIALLY_PAID;
+                        }
+                        invoice.AddPayments(payment);
+                        
                     }
                 }
             }
@@ -141,37 +84,37 @@ namespace RefactorThis.Domain
             return responseMessage;
         }
 
-        private static bool IsFullyPaid(Payment payment, Invoice invoice)
+        private static bool IsFullyPaid(Payment payment, IInvoice invoice)
         {
             return invoice.Amount == payment.Amount;
         }
 
-        private static bool IsOverPaid(Payment payment, Invoice invoice)
+        private static bool IsOverPaid(Payment payment, IInvoice invoice)
         {
             return payment.Amount > invoice.Amount;
         }
 
-        private static bool IsFullyPaidForRemainingInvoice(Payment payment, Invoice invoice)
+        private static bool IsFullyPaidForRemainingInvoice(Payment payment, IInvoice invoice)
         {
             return (invoice.Amount - invoice.AmountPaid) == payment.Amount;
         }
 
-        private static bool IsOverPaidForRemainingInvoice(Payment payment, Invoice invoice)
+        private static bool IsOverPaidForRemainingInvoice(Payment payment, IInvoice invoice)
         {
             return invoice.Payments.Sum(x => x.Amount) != 0 && payment.Amount > (invoice.Amount - invoice.AmountPaid);
         }
 
-        private static bool IsInvoiceAlreadyPaid(Invoice invoice)
+        private static bool IsInvoiceAlreadyPaid(IInvoice invoice)
         {
             return invoice.Payments.Sum(x => x.Amount) != 0 && invoice.Amount == invoice.Payments.Sum(x => x.Amount);
         }
 
-        private static bool HasPaymentInInvoice(Invoice invoice)
+        private static bool HasPaymentInInvoice(IInvoice invoice)
         {
             return invoice.Payments != null && invoice.Payments.Any();
         }
 
-        private static bool IsPaymentNeeded(Invoice invoice)
+        private static bool IsPaymentNeeded(IInvoice invoice)
         {
             return invoice.Amount == 0;
         }
