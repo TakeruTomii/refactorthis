@@ -15,7 +15,7 @@ namespace RefactorThis.Domain
 
         public string ProcessPayment(Payment payment)
         {
-            var responseMessage = string.Empty;
+            string responseMessage;
 
             IInvoice invoice = GetValidatedInvoice(payment);
 
