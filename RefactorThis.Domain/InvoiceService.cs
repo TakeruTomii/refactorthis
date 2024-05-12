@@ -1,19 +1,19 @@
+using RefactorThis.Persistence;
 using System;
 using System.Linq;
-using RefactorThis.Persistence;
 
 namespace RefactorThis.Domain
 {
-	public class InvoiceService
-	{
-		private readonly InvoiceRepository _invoiceRepository;
+    public class InvoiceService
+    {
+        private readonly InvoiceRepository _invoiceRepository;
 
-        public InvoiceService( InvoiceRepository invoiceRepository )
-		{
-			_invoiceRepository = invoiceRepository;
+        public InvoiceService(InvoiceRepository invoiceRepository)
+        {
+            _invoiceRepository = invoiceRepository;
         }
 
-		public string ProcessPayment( Payment payment )
+        public string ProcessPayment(Payment payment)
         {
             var responseMessage = string.Empty;
 

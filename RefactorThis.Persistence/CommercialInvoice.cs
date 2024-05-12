@@ -1,12 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 
 namespace RefactorThis.Persistence
 {
-    public class CommercialInvoice: IInvoice
+    public class CommercialInvoice : IInvoice
     {
         private readonly InvoiceRepository _repository;
         private const decimal TAX_RATE = 0.14m;

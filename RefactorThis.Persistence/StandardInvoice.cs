@@ -2,18 +2,18 @@ using System.Collections.Generic;
 
 namespace RefactorThis.Persistence
 {
-	public class StandardInvoice:IInvoice
-	{
-		private readonly InvoiceRepository _repository;
-		public StandardInvoice( InvoiceRepository repository )
-		{
-			_repository = repository;
-		}
+    public class StandardInvoice : IInvoice
+    {
+        private readonly InvoiceRepository _repository;
+        public StandardInvoice(InvoiceRepository repository)
+        {
+            _repository = repository;
+        }
 
-		public void Save( )
-		{
-			_repository.SaveInvoice( this );
-		}
+        public void Save()
+        {
+            _repository.SaveInvoice(this);
+        }
 
         public void AddPayments(Payment payment)
         {
@@ -22,7 +22,7 @@ namespace RefactorThis.Persistence
         }
 
         public decimal Amount { get; set; }
-		public decimal AmountPaid { get; set; }
-		public List<Payment> Payments { get; set; }
-	}
+        public decimal AmountPaid { get; set; }
+        public List<Payment> Payments { get; set; }
+    }
 }
