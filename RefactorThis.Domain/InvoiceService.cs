@@ -26,7 +26,7 @@ namespace RefactorThis.Domain
 
             if (invoice.Amount == 0)
             {
-                if (invoice.Payments == null || !invoice.Payments.Any())
+                if (!(invoice.Payments != null && invoice.Payments.Any()))
                 {
                     responseMessage = ResponseMessages.RES_NO_PAYMENT_NEEDED;
                 }
