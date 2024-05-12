@@ -1,5 +1,4 @@
 using System;
-using System.Deployment.Internal;
 using System.Linq;
 using RefactorThis.Persistence;
 
@@ -8,18 +7,6 @@ namespace RefactorThis.Domain
 	public class InvoiceService
 	{
 		private readonly InvoiceRepository _invoiceRepository;
-
-		public const string ERROR_NO_INVOICE_MATCHING_THIS_PAYMENT = "There is no invoice matching this payment";
-		public const string RES_NO_PAYMENT_NEEDED = "no payment needed";
-        public const string ERROR_INVOICE_INVALID_STATE = "The invoice is in an invalid state, it has an amount of 0 and it has payments.";
-        public const string RES_INVOICE_ALREADY_FULLY_PAID = "invoice was already fully paid";
-        public const string RES_PAYMENT_GREATER_THAN_PARTIAL_AMOUNT_REMAINING = "the payment is greater than the partial amount remaining";
-		public const string RES_FINAL_INVOICE_FULLY_PAID = "final partial payment received, invoice is now fully paid";
-		public const string RES_ANOTHER_PARTIAL_NOT_FULLY_PAID = "another partial payment received, still not fully paid";
-        public const string RES_PAYMENT_GREATER_THAN_INVOICE_AMOUNT = "the payment is greater than the invoice amount";
-        public const string RES_INVOICE_NOW_FULLY_PAID = "invoice is now fully paid";
-        public const string RES_INVOICE_NOW_PARTIALLY_PAID = "invoice is now partially paid";
-		public const decimal TAX_RATE = 0.14m;
 
         public InvoiceService( InvoiceRepository invoiceRepository )
 		{
@@ -34,7 +21,7 @@ namespace RefactorThis.Domain
 
 			if ( invoice == null )
 			{
-				throw new InvalidOperationException(ERROR_NO_INVOICE_MATCHING_THIS_PAYMENT);
+				throw new InvalidOperationException(ErrorMessages.ERROR_NO_INVOICE_MATCHING_THIS_PAYMENT);
 			}
 			else
 			{
@@ -42,11 +29,11 @@ namespace RefactorThis.Domain
 				{
 					if ( invoice.Payments == null || !invoice.Payments.Any( ) )
 					{
-						responseMessage = RES_NO_PAYMENT_NEEDED;
+						responseMessage = ResponseMessages.RES_NO_PAYMENT_NEEDED;
 					}
 					else
 					{
-						throw new InvalidOperationException(ERROR_INVOICE_INVALID_STATE);
+						throw new InvalidOperationException(ErrorMessages.ERROR_INVOICE_INVALID_STATE);
 					}
 				}
 				else
@@ -55,11 +42,11 @@ namespace RefactorThis.Domain
 					{
 						if ( invoice.Payments.Sum( x => x.Amount ) != 0 && invoice.Amount == invoice.Payments.Sum( x => x.Amount ) )
 						{
-							responseMessage = RES_INVOICE_ALREADY_FULLY_PAID;
+							responseMessage = ResponseMessages.RES_INVOICE_ALREADY_FULLY_PAID;
 						}
 						else if ( invoice.Payments.Sum( x => x.Amount ) != 0 && payment.Amount > ( invoice.Amount - invoice.AmountPaid ) )
 						{
-							responseMessage = RES_PAYMENT_GREATER_THAN_PARTIAL_AMOUNT_REMAINING;
+							responseMessage = ResponseMessages.RES_PAYMENT_GREATER_THAN_PARTIAL_AMOUNT_REMAINING;
 						}
 						else
 						{
@@ -70,13 +57,13 @@ namespace RefactorThis.Domain
 									case InvoiceType.Standard:
 										invoice.AmountPaid += payment.Amount;
 										invoice.Payments.Add( payment );
-										responseMessage = RES_FINAL_INVOICE_FULLY_PAID;
+										responseMessage = ResponseMessages.RES_FINAL_INVOICE_FULLY_PAID;
 										break;
 									case InvoiceType.Commercial:
 										invoice.AmountPaid += payment.Amount;
-										invoice.TaxAmount += payment.Amount * TAX_RATE;
+										invoice.TaxAmount += payment.Amount * InvoiceConstants.TAX_RATE;
 										invoice.Payments.Add( payment );
-										responseMessage = RES_FINAL_INVOICE_FULLY_PAID;
+										responseMessage = ResponseMessages.RES_FINAL_INVOICE_FULLY_PAID;
 										break;
 									default:
 										throw new ArgumentOutOfRangeException( );
@@ -90,13 +77,13 @@ namespace RefactorThis.Domain
 									case InvoiceType.Standard:
 										invoice.AmountPaid += payment.Amount;
 										invoice.Payments.Add( payment );
-										responseMessage = RES_ANOTHER_PARTIAL_NOT_FULLY_PAID;
+										responseMessage = ResponseMessages.RES_ANOTHER_PARTIAL_NOT_FULLY_PAID;
 										break;
 									case InvoiceType.Commercial:
 										invoice.AmountPaid += payment.Amount;
-										invoice.TaxAmount += payment.Amount * TAX_RATE;
+										invoice.TaxAmount += payment.Amount * InvoiceConstants.TAX_RATE;
 										invoice.Payments.Add( payment );
-										responseMessage = RES_ANOTHER_PARTIAL_NOT_FULLY_PAID;
+										responseMessage = ResponseMessages.RES_ANOTHER_PARTIAL_NOT_FULLY_PAID;
 										break;
 									default:
 										throw new ArgumentOutOfRangeException( );
@@ -108,7 +95,7 @@ namespace RefactorThis.Domain
 					{
 						if ( payment.Amount > invoice.Amount )
 						{
-							responseMessage = RES_PAYMENT_GREATER_THAN_INVOICE_AMOUNT;
+							responseMessage = ResponseMessages.RES_PAYMENT_GREATER_THAN_INVOICE_AMOUNT;
 						}
 						else if ( invoice.Amount == payment.Amount )
 						{
@@ -116,15 +103,15 @@ namespace RefactorThis.Domain
 							{
 								case InvoiceType.Standard:
 									invoice.AmountPaid = payment.Amount;
-									invoice.TaxAmount = payment.Amount * TAX_RATE;
+									invoice.TaxAmount = payment.Amount * InvoiceConstants.TAX_RATE;
 									invoice.Payments.Add( payment );
-									responseMessage = RES_INVOICE_NOW_FULLY_PAID;
+									responseMessage = ResponseMessages.RES_INVOICE_NOW_FULLY_PAID;
 									break;
 								case InvoiceType.Commercial:
 									invoice.AmountPaid = payment.Amount;
-									invoice.TaxAmount = payment.Amount * TAX_RATE;
+									invoice.TaxAmount = payment.Amount * InvoiceConstants.TAX_RATE;
 									invoice.Payments.Add( payment );
-									responseMessage = RES_INVOICE_NOW_FULLY_PAID;
+									responseMessage = ResponseMessages.RES_INVOICE_NOW_FULLY_PAID;
 									break;
 								default:
 									throw new ArgumentOutOfRangeException( );
@@ -136,15 +123,15 @@ namespace RefactorThis.Domain
 							{
 								case InvoiceType.Standard:
 									invoice.AmountPaid = payment.Amount;
-									invoice.TaxAmount = payment.Amount * TAX_RATE;
+									invoice.TaxAmount = payment.Amount * InvoiceConstants.TAX_RATE;
 									invoice.Payments.Add( payment );
-									responseMessage = RES_INVOICE_NOW_PARTIALLY_PAID;
+									responseMessage = ResponseMessages.RES_INVOICE_NOW_PARTIALLY_PAID;
 									break;
 								case InvoiceType.Commercial:
 									invoice.AmountPaid = payment.Amount;
-									invoice.TaxAmount = payment.Amount * TAX_RATE;
+									invoice.TaxAmount = payment.Amount * InvoiceConstants.TAX_RATE;
 									invoice.Payments.Add( payment );
-									responseMessage = RES_INVOICE_NOW_PARTIALLY_PAID;
+									responseMessage = ResponseMessages.RES_INVOICE_NOW_PARTIALLY_PAID;
 									break;
 								default:
 									throw new ArgumentOutOfRangeException( );
