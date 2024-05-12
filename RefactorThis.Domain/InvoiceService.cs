@@ -14,19 +14,19 @@ namespace RefactorThis.Domain
         }
 
 		public string ProcessPayment( Payment payment )
-		{
-			var invoice = _invoiceRepository.GetInvoice( payment.Reference );
+        {
+            var invoice = _invoiceRepository.GetInvoice(payment.Reference);
 
-			var responseMessage = string.Empty;
+            var responseMessage = string.Empty;
 
-			if ( invoice == null )
-			{
-				throw new InvalidOperationException(ErrorMessages.ERROR_NO_INVOICE_MATCHING_THIS_PAYMENT);
-			}
-
-            if (invoice.Amount == 0)
+            if (invoice == null)
             {
-                if(invoice.Payments != null && invoice.Payments.Any())
+                throw new InvalidOperationException(ErrorMessages.ERROR_NO_INVOICE_MATCHING_THIS_PAYMENT);
+            }
+
+            if (IsPaymentNeeded(invoice))
+            {
+                if (HasPaymentInInvoice(invoice))
                 {
                     throw new InvalidOperationException(ErrorMessages.ERROR_INVOICE_INVALID_STATE);
                 }
@@ -34,19 +34,19 @@ namespace RefactorThis.Domain
             }
             else
             {
-                if (invoice.Payments != null && invoice.Payments.Any())
+                if (HasPaymentInInvoice(invoice))
                 {
-                    if (invoice.Payments.Sum(x => x.Amount) != 0 && invoice.Amount == invoice.Payments.Sum(x => x.Amount))
+                    if (IsInvoiceAlreadyPaid(invoice))
                     {
                         responseMessage = ResponseMessages.RES_INVOICE_ALREADY_FULLY_PAID;
                     }
-                    else if (invoice.Payments.Sum(x => x.Amount) != 0 && payment.Amount > (invoice.Amount - invoice.AmountPaid))
+                    else if (IsOverPaidForRemainingInvoice(payment, invoice))
                     {
                         responseMessage = ResponseMessages.RES_PAYMENT_GREATER_THAN_PARTIAL_AMOUNT_REMAINING;
                     }
                     else
                     {
-                        if ((invoice.Amount - invoice.AmountPaid) == payment.Amount)
+                        if (IsFullyPaidForRemainingInvoice(payment, invoice))
                         {
                             switch (invoice.Type)
                             {
@@ -89,11 +89,11 @@ namespace RefactorThis.Domain
                 }
                 else
                 {
-                    if (payment.Amount > invoice.Amount)
+                    if (IsOverPaid(payment, invoice))
                     {
                         responseMessage = ResponseMessages.RES_PAYMENT_GREATER_THAN_INVOICE_AMOUNT;
                     }
-                    else if (invoice.Amount == payment.Amount)
+                    else if (IsFullyPaid(payment, invoice))
                     {
                         switch (invoice.Type)
                         {
@@ -138,7 +138,42 @@ namespace RefactorThis.Domain
 
             invoice.Save();
 
-			return responseMessage;
-		}
-	}
+            return responseMessage;
+        }
+
+        private static bool IsFullyPaid(Payment payment, Invoice invoice)
+        {
+            return invoice.Amount == payment.Amount;
+        }
+
+        private static bool IsOverPaid(Payment payment, Invoice invoice)
+        {
+            return payment.Amount > invoice.Amount;
+        }
+
+        private static bool IsFullyPaidForRemainingInvoice(Payment payment, Invoice invoice)
+        {
+            return (invoice.Amount - invoice.AmountPaid) == payment.Amount;
+        }
+
+        private static bool IsOverPaidForRemainingInvoice(Payment payment, Invoice invoice)
+        {
+            return invoice.Payments.Sum(x => x.Amount) != 0 && payment.Amount > (invoice.Amount - invoice.AmountPaid);
+        }
+
+        private static bool IsInvoiceAlreadyPaid(Invoice invoice)
+        {
+            return invoice.Payments.Sum(x => x.Amount) != 0 && invoice.Amount == invoice.Payments.Sum(x => x.Amount);
+        }
+
+        private static bool HasPaymentInInvoice(Invoice invoice)
+        {
+            return invoice.Payments != null && invoice.Payments.Any();
+        }
+
+        private static bool IsPaymentNeeded(Invoice invoice)
+        {
+            return invoice.Amount == 0;
+        }
+    }
 }
