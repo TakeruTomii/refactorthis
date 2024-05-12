@@ -26,14 +26,11 @@ namespace RefactorThis.Domain
 
             if (invoice.Amount == 0)
             {
-                if (!(invoice.Payments != null && invoice.Payments.Any()))
-                {
-                    responseMessage = ResponseMessages.RES_NO_PAYMENT_NEEDED;
-                }
-                else
+                if(invoice.Payments != null && invoice.Payments.Any())
                 {
                     throw new InvalidOperationException(ErrorMessages.ERROR_INVOICE_INVALID_STATE);
                 }
+                responseMessage = ResponseMessages.RES_NO_PAYMENT_NEEDED;
             }
             else
             {
