@@ -28,19 +28,19 @@ namespace RefactorThis.Domain
 
 		public string ProcessPayment( Payment payment )
 		{
-			var inv = _invoiceRepository.GetInvoice( payment.Reference );
+			var invoice = _invoiceRepository.GetInvoice( payment.Reference );
 
 			var responseMessage = string.Empty;
 
-			if ( inv == null )
+			if ( invoice == null )
 			{
 				throw new InvalidOperationException(ERROR_NO_INVOICE_MATCHING_THIS_PAYMENT);
 			}
 			else
 			{
-				if ( inv.Amount == 0 )
+				if ( invoice.Amount == 0 )
 				{
-					if ( inv.Payments == null || !inv.Payments.Any( ) )
+					if ( invoice.Payments == null || !invoice.Payments.Any( ) )
 					{
 						responseMessage = RES_NO_PAYMENT_NEEDED;
 					}
@@ -51,31 +51,31 @@ namespace RefactorThis.Domain
 				}
 				else
 				{
-					if ( inv.Payments != null && inv.Payments.Any( ) )
+					if ( invoice.Payments != null && invoice.Payments.Any( ) )
 					{
-						if ( inv.Payments.Sum( x => x.Amount ) != 0 && inv.Amount == inv.Payments.Sum( x => x.Amount ) )
+						if ( invoice.Payments.Sum( x => x.Amount ) != 0 && invoice.Amount == invoice.Payments.Sum( x => x.Amount ) )
 						{
 							responseMessage = RES_INVOICE_ALREADY_FULLY_PAID;
 						}
-						else if ( inv.Payments.Sum( x => x.Amount ) != 0 && payment.Amount > ( inv.Amount - inv.AmountPaid ) )
+						else if ( invoice.Payments.Sum( x => x.Amount ) != 0 && payment.Amount > ( invoice.Amount - invoice.AmountPaid ) )
 						{
 							responseMessage = RES_PAYMENT_GREATER_THAN_PARTIAL_AMOUNT_REMAINING;
 						}
 						else
 						{
-							if ( ( inv.Amount - inv.AmountPaid ) == payment.Amount )
+							if ( ( invoice.Amount - invoice.AmountPaid ) == payment.Amount )
 							{
-								switch ( inv.Type )
+								switch ( invoice.Type )
 								{
 									case InvoiceType.Standard:
-										inv.AmountPaid += payment.Amount;
-										inv.Payments.Add( payment );
+										invoice.AmountPaid += payment.Amount;
+										invoice.Payments.Add( payment );
 										responseMessage = RES_FINAL_INVOICE_FULLY_PAID;
 										break;
 									case InvoiceType.Commercial:
-										inv.AmountPaid += payment.Amount;
-										inv.TaxAmount += payment.Amount * TAX_RATE;
-										inv.Payments.Add( payment );
+										invoice.AmountPaid += payment.Amount;
+										invoice.TaxAmount += payment.Amount * TAX_RATE;
+										invoice.Payments.Add( payment );
 										responseMessage = RES_FINAL_INVOICE_FULLY_PAID;
 										break;
 									default:
@@ -85,17 +85,17 @@ namespace RefactorThis.Domain
 							}
 							else
 							{
-								switch ( inv.Type )
+								switch ( invoice.Type )
 								{
 									case InvoiceType.Standard:
-										inv.AmountPaid += payment.Amount;
-										inv.Payments.Add( payment );
+										invoice.AmountPaid += payment.Amount;
+										invoice.Payments.Add( payment );
 										responseMessage = RES_ANOTHER_PARTIAL_NOT_FULLY_PAID;
 										break;
 									case InvoiceType.Commercial:
-										inv.AmountPaid += payment.Amount;
-										inv.TaxAmount += payment.Amount * TAX_RATE;
-										inv.Payments.Add( payment );
+										invoice.AmountPaid += payment.Amount;
+										invoice.TaxAmount += payment.Amount * TAX_RATE;
+										invoice.Payments.Add( payment );
 										responseMessage = RES_ANOTHER_PARTIAL_NOT_FULLY_PAID;
 										break;
 									default:
@@ -106,24 +106,24 @@ namespace RefactorThis.Domain
 					}
 					else
 					{
-						if ( payment.Amount > inv.Amount )
+						if ( payment.Amount > invoice.Amount )
 						{
 							responseMessage = RES_PAYMENT_GREATER_THAN_INVOICE_AMOUNT;
 						}
-						else if ( inv.Amount == payment.Amount )
+						else if ( invoice.Amount == payment.Amount )
 						{
-							switch ( inv.Type )
+							switch ( invoice.Type )
 							{
 								case InvoiceType.Standard:
-									inv.AmountPaid = payment.Amount;
-									inv.TaxAmount = payment.Amount * TAX_RATE;
-									inv.Payments.Add( payment );
+									invoice.AmountPaid = payment.Amount;
+									invoice.TaxAmount = payment.Amount * TAX_RATE;
+									invoice.Payments.Add( payment );
 									responseMessage = RES_INVOICE_NOW_FULLY_PAID;
 									break;
 								case InvoiceType.Commercial:
-									inv.AmountPaid = payment.Amount;
-									inv.TaxAmount = payment.Amount * TAX_RATE;
-									inv.Payments.Add( payment );
+									invoice.AmountPaid = payment.Amount;
+									invoice.TaxAmount = payment.Amount * TAX_RATE;
+									invoice.Payments.Add( payment );
 									responseMessage = RES_INVOICE_NOW_FULLY_PAID;
 									break;
 								default:
@@ -132,18 +132,18 @@ namespace RefactorThis.Domain
 						}
 						else
 						{
-							switch ( inv.Type )
+							switch ( invoice.Type )
 							{
 								case InvoiceType.Standard:
-									inv.AmountPaid = payment.Amount;
-									inv.TaxAmount = payment.Amount * TAX_RATE;
-									inv.Payments.Add( payment );
+									invoice.AmountPaid = payment.Amount;
+									invoice.TaxAmount = payment.Amount * TAX_RATE;
+									invoice.Payments.Add( payment );
 									responseMessage = RES_INVOICE_NOW_PARTIALLY_PAID;
 									break;
 								case InvoiceType.Commercial:
-									inv.AmountPaid = payment.Amount;
-									inv.TaxAmount = payment.Amount * TAX_RATE;
-									inv.Payments.Add( payment );
+									invoice.AmountPaid = payment.Amount;
+									invoice.TaxAmount = payment.Amount * TAX_RATE;
+									invoice.Payments.Add( payment );
 									responseMessage = RES_INVOICE_NOW_PARTIALLY_PAID;
 									break;
 								default:
@@ -154,7 +154,7 @@ namespace RefactorThis.Domain
 				}
 			}
 			
-			inv.Save();
+			invoice.Save();
 
 			return responseMessage;
 		}
