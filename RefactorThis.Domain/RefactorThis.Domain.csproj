@@ -39,7 +39,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ErrorMessages.cs" />
-    <Compile Include="InvoiceConstants.cs" />
     <Compile Include="InvoiceService.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ResponseMessages.cs" />
